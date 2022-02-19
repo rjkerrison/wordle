@@ -20,6 +20,19 @@ enum Correctness {
 
 type WordFeedback = Vec<LetterFeedback>;
 
+trait AllCorrect {
+    fn all_correct(self) -> bool;
+}
+
+impl AllCorrect for WordFeedback {
+    fn all_correct(self) -> bool {
+        self.iter().all(|l| match l.result {
+            Correctness::Correct => true,
+            _ => false,
+        })
+    }
+}
+
 fn compare_letter_to_word(c: char, i: usize, word: &[char]) -> LetterFeedback {
     if word[i] == c {
         return LetterFeedback {
@@ -39,19 +52,34 @@ fn compare_letter_to_word(c: char, i: usize, word: &[char]) -> LetterFeedback {
     }
 }
 
-fn compare_guess_to_word(guess: String, word: String) -> WordFeedback {
-    let word_chars: Vec<char> = word.chars().into_iter().collect();
+fn compare_guess_to_word(guess: String, word_chars: &[char]) -> WordFeedback {
     guess
         .chars()
         .enumerate()
-        .map(|(i, c): (usize, char)| compare_letter_to_word(c, i, &word_chars))
+        .map(|(i, c): (usize, char)| compare_letter_to_word(c, i, word_chars))
         .collect()
+}
+
+fn guess(word_chars: &[char]) -> WordFeedback {
+    let guess = get_user_input("guess");
+    compare_guess_to_word(guess, word_chars)
 }
 
 fn main() {
     let word = "Robin".to_owned();
-    let guess = get_user_input("guess");
-    let result = compare_guess_to_word(guess, word);
+    let word_chars: Vec<char> = word.chars().into_iter().collect();
 
-    println!("{}", serde_json::to_string_pretty(&result).unwrap())
+    let mut count = 0;
+    while count < 6 {
+        let result = guess(&word_chars);
+        println!("{}", serde_json::to_string_pretty(&result).unwrap());
+
+        if result.all_correct() {
+            println!("Well done!");
+            return;
+        }
+
+        count += 1;
+    }
+    println!("Bad luck!");
 }
