@@ -1,12 +1,14 @@
+pub mod game;
+
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct LetterFeedback {
     char: char,
     result: Correctness,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub enum Correctness {
     Correct,
     Position,
@@ -16,11 +18,11 @@ pub enum Correctness {
 pub type WordFeedback = Vec<LetterFeedback>;
 
 pub trait AllCorrect {
-    fn all_correct(self) -> bool;
+    fn all_correct(&self) -> bool;
 }
 
 impl AllCorrect for WordFeedback {
-    fn all_correct(self) -> bool {
+    fn all_correct(&self) -> bool {
         self.iter()
             .all(|l| matches!(l.result, Correctness::Correct))
     }
@@ -53,8 +55,7 @@ pub fn compare_guess_to_word(guess: String, word_chars: &[char]) -> WordFeedback
         .collect()
 }
 
-pub fn get_word_as_chars() -> Vec<char> {
-    let word = "Robin".to_owned();
+pub fn get_word_as_chars(word: String) -> Vec<char> {
     let word_chars: Vec<char> = word.to_uppercase().chars().into_iter().collect();
     word_chars
 }
