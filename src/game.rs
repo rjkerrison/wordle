@@ -1,4 +1,4 @@
-use crate::{compare_guess_to_word, get_word_as_chars, AllCorrect, WordFeedback};
+use crate::{compare_guess_to_word, get_word_as_chars, words::get_word, AllCorrect, WordFeedback};
 
 use serde::Serialize;
 
@@ -25,7 +25,7 @@ pub struct Game {
 impl Game {
     pub fn new() -> Self {
         Game {
-            word: "Robin".to_owned(),
+            word: get_word().unwrap_or_else(|| "Robin".to_owned()),
             attempts: vec![],
             status: GameStatus::Open,
         }
