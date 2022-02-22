@@ -10,12 +10,14 @@ pub struct Attempt {
     feedback: WordFeedback,
 }
 
+#[derive(Clone)]
 pub enum GameStatus {
     Open,
     Lost,
     Won,
 }
 
+#[derive(Clone)]
 pub struct Game {
     word: String,
     pub attempts: Vec<Attempt>,

@@ -1,23 +1,23 @@
-use dialoguer::Input;
+use warp::Filter;
 use wordle::game::{Game, GameStatus};
 
-fn get_user_input(message: &str) -> String {
-    Input::new().with_prompt(message).interact_text().unwrap()
-}
+#[tokio::main]
+async fn main() {
+    let game = Game::new();
 
-fn main() {
-    let mut game = Game::new();
+    let h = game.clone();
+    let guess: _ = warp::path!("guess" / String).map(move |guess| {
+        let attempt = h.clone().try_guess(guess);
+        serde_json::to_string_pretty(&attempt).unwrap()
+    });
 
-    while matches!(&game.status, GameStatus::Open) {
-        let guess = get_user_input("guess");
-        let attempt = game.try_guess(guess);
+    let status: _ = warp::path!("status").map(move || match game.status {
+        GameStatus::Open => "Open",
+        GameStatus::Lost => "Lost",
+        GameStatus::Won => "Won",
+    });
 
-        println!("{}", serde_json::to_string_pretty(&attempt).unwrap());
-    }
+    let routes = warp::get().and(guess.or(status));
 
-    match game.status {
-        GameStatus::Open => panic!("Something went wrong"),
-        GameStatus::Lost => println!("Bad luck!"),
-        GameStatus::Won => println!("Well done!"),
-    }
+    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
